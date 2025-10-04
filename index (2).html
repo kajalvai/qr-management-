@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>কর্জে হাসানা ম্যানেজমেন্ট সিস্টেম</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2E8B57;
+            --secondary-color: #F5F5DC;
+            --accent-color: #DAA520;
+            --donor-color: #4A90E2;
+            --borrower-color: #E74C3C;
+            --admin-color: #8E44AD;
+        }
+        
+        body {
+            font-family: 'SolaimanLipi', 'Siyam Rupali', Arial, sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+            border: none;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .donor-card {
+            border-left: 4px solid var(--donor-color);
+        }
+        
+        .borrower-card {
+            border-left: 4px solid var(--borrower-color);
+        }
+        
+        .admin-card {
+            border-left: 4px solid var(--admin-color);
+        }
+        
+        .status-pending {
+            background-color: #FFF3CD;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background-color: #D1ECF1;
+            color: #0C5460;
+        }
+        
+        .status-completed {
+            background-color: #D4EDDA;
+            color: #155724;
+        }
+        
+        .status-overdue {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+        
+        .tab-content {
+            background-color: white;
+            border-radius: 0 0 10px 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .user-type-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .badge-donor {
+            background-color: var(--donor-color);
+            color: white;
+        }
+        
+        .badge-borrower {
+            background-color: var(--borrower-color);
+            color: white;
+        }
+        
+        .badge-admin {
+            background-color: var(--admin-color);
+            color: white;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .payment-calendar {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .calendar-day {
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .calendar-day.payment-due {
+            background-color: #FFEAA7;
+            font-weight: bold;
+        }
+        
+        .calendar-day.payment-made {
+            background-color: #55EFC4;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- নেভিগেশন বার -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-hands-helping me-2"></i>
+                কর্জে হাসানা ম্যানেজমেন্ট সিস্টেম
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-1"></i> অ্যাডমিন
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="fas fa-user-circle me-2"></i> প্রোফাইল</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i> লগআউট</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ড্যাশবোর্ড -->
+    <div class="container mt-4" id="dashboard">
+        <!-- পরিসংখ্যান -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-number" id="totalDonations">৳ 0</div>
+                    <div class="text-muted">মোট ডোনেশন</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-number" id="totalLoans">৳ 0</div>
+                    <div class="text-muted">মোট ঋণ প্রদান</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-number" id="activeBorrowers">0</div>
+                    <div class="text-muted">সক্রিয় ঋণগ্রহীতা</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="stats-number" id="repaidAmount">৳ 0</div>
+                    <div class="text-muted">ফেরতকৃত ঋণ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ট্যাব নেভিগেশন -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="donors-tab" data-bs-toggle="tab" data-bs-target="#donors" type="button">
+                    <i class="fas fa-donate me-2"></i> দাতাগণ
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="borrowers-tab" data-bs-toggle="tab" data-bs-target="#borrowers" type="button">
+                    <i class="fas fa-hand-holding-usd me-2"></i> ঋণগ্রহীতাগণ
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="loans-tab" data-bs-toggle="tab" data-bs-target="#loans" type="button">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> ঋণ ব্যবস্থাপনা
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button">
+                    <i class="fas fa-calendar-check me-2"></i> পেমেন্ট ক্যালেন্ডার
+                </button>
+            </li>
+        </ul>
+
+        <!-- ট্যাব কন্টেন্ট -->
+        <div class="tab-content" id="dashboardTabsContent">
+            <!-- দাতা ট্যাব -->
+            <div class="tab-pane fade show active" id="donors" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>দাতাগণের তালিকা</h4>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDonorModal">
+                        <i class="fas fa-plus me-2"></i> নতুন দাতা যোগ করুন
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>নাম</th>
+                                <th>মোবাইল</th>
+                                <th>ডোনেশন পরিমাণ</th>
+                                <th>তারিখ</th>
+                                <th>পদ্ধতি</th>
+                                <th>স্ট্যাটাস</th>
+                                <th>কার্যক্রম</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donorsTable">
+                            <!-- ডেটা জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ঋণগ্রহীতা ট্যাব -->
+            <div class="tab-pane fade" id="borrowers" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>ঋণগ্রহীতাগণের তালিকা</h4>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBorrowerModal">
+                        <i class="fas fa-plus me-2"></i> নতুন ঋণগ্রহীতা যোগ করুন
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>নাম</th>
+                                <th>মোবাইল</th>
+                                <th>ঠিকানা</th>
+                                <th>পেশা</th>
+                                <th>ঋণের পরিমাণ</th>
+                                <th>স্ট্যাটাস</th>
+                                <th>কার্যক্রম</th>
+                            </tr>
+                        </thead>
+                        <tbody id="borrowersTable">
+                            <!-- ডেটা জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ঋণ ব্যবস্থাপনা ট্যাব -->
+            <div class="tab-pane fade" id="loans" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>ঋণ ব্যবস্থাপনা</h4>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLoanModal">
+                        <i class="fas fa-plus me-2"></i> নতুন ঋণ প্রদান
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ঋণগ্রহীতার নাম</th>
+                                <th>ঋণের পরিমাণ</th>
+                                <th>প্রদানের তারিখ</th>
+                                <th>পরিশোধের তারিখ</th>
+                                <th>মাসিক কিস্তি</th>
+                                <th>অবশিষ্ট পরিমাণ</th>
+                                <th>স্ট্যাটাস</th>
+                                <th>কার্যক্রম</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTable">
+                            <!-- ডেটা জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- পেমেন্ট ক্যালেন্ডার ট্যাব -->
+            <div class="tab-pane fade" id="payments" role="tabpanel">
+                <h4 class="mb-3">পেমেন্ট ক্যালেন্ডার</h4>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="payment-calendar">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 id="currentMonth">মাস, বছর</h5>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" id="prevMonth">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" id="nextMonth">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row" id="calendarDays">
+                                <!-- ক্যালেন্ডার জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>আজকের পেমেন্ট</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="todayPayments">
+                                    <!-- আজকের পেমেন্ট জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- মডালগুলি -->
+    
+    <!-- নতুন দাতা যোগ করুন মডাল -->
+    <div class="modal fade" id="addDonorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">নতুন দাতা যোগ করুন</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDonorForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="donorName" class="form-label">নাম *</label>
+                                    <input type="text" class="form-control" id="donorName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="donorMobile" class="form-label">মোবাইল নম্বর *</label>
+                                    <input type="tel" class="form-control" id="donorMobile" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="donorAddress" class="form-label">ঠিকানা</label>
+                            <textarea class="form-control" id="donorAddress" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="donationAmount" class="form-label">ডোনেশন পরিমাণ *</label>
+                                    <input type="number" class="form-control" id="donationAmount" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="donationMethod" class="form-label">ডোনেশন পদ্ধতি *</label>
+                                    <select class="form-select" id="donationMethod" required>
+                                        <option value="বিকাশ">বিকাশ</option>
+                                        <option value="নগদ">নগদ</option>
+                                        <option value="ব্যাংক">ব্যাংক</option>
+                                        <option value="অন্যান্য">অন্যান্য</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="donationDate" class="form-label">তারিখ *</label>
+                            <input type="date" class="form-control" id="donationDate" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-primary" id="saveDonorBtn">সংরক্ষণ করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <!-- নতুন ঋণগ্রহীতা যোগ করুন মডাল -->
+    <div class="modal fade" id="addBorrowerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">নতুন ঋণগ্রহীতা যোগ করুন</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addBorrowerForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="borrowerName" class="form-label">নাম *</label>
+                                    <input type="text" class="form-control" id="borrowerName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="borrowerMobile" class="form-label">মোবাইল নম্বর *</label>
+                                    <input type="tel" class="form-control" id="borrowerMobile" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="borrowerAddress" class="form-label">ঠিকানা *</label>
+                            <textarea class="form-control" id="borrowerAddress" rows="2" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="borrowerProfession" class="form-label">পেশা *</label>
+                                    <input type="text" class="form-control" id="borrowerProfession" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="borrowerIncome" class="form-label">মাসিক আয়</label>
+                                    <input type="number" class="form-control" id="borrowerIncome">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="borrowerNID" class="form-label">জাতীয় পরিচয়পত্র নম্বর</label>
+                            <input type="text" class="form-control" id="borrowerNID">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-primary" id="saveBorrowerBtn">সংরক্ষণ করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- নতুন ঋণ প্রদান মডাল -->
+    <div class="modal fade" id="addLoanModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">নতুন ঋণ প্রদান</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addLoanForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="loanBorrower" class="form-label">ঋণগ্রহীতা নির্বাচন করুন *</label>
+                                    <select class="form-select" id="loanBorrower" required>
+                                        <option value="" selected disabled>নির্বাচন করুন</option>
+                                        <!-- ঋণগ্রহীতাগণ জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="loanAmount" class="form-label">ঋণের পরিমাণ *</label>
+                                    <input type="number" class="form-control" id="loanAmount" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="loanDate" class="form-label">ঋণ প্রদানের তারিখ *</label>
+                                    <input type="date" class="form-control" id="loanDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="installmentAmount" class="form-label">মাসিক কিস্তির পরিমাণ *</label>
+                                    <input type="number" class="form-control" id="installmentAmount" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loanPurpose" class="form-label">ঋণের উদ্দেশ্য</label>
+                            <textarea class="form-control" id="loanPurpose" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-primary" id="saveLoanBtn">সংরক্ষণ করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- পেমেন্ট রেকর্ড মডাল -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">পেমেন্ট রেকর্ড করুন</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label for="paymentLoan" class="form-label">ঋণ নির্বাচন করুন</label>
+                            <select class="form-select" id="paymentLoan" required>
+                                <!-- ঋণ তালিকা জাভাস্ক্রিপ্ট দ্বারা লোড হবে -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="paymentAmount" class="form-label">পরিশোধের পরিমাণ *</label>
+                            <input type="number" class="form-control" id="paymentAmount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="paymentDate" class="form-label">তারিখ *</label>
+                            <input type="date" class="form-control" id="paymentDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="paymentMethod" class="form-label">পেমেন্ট পদ্ধতি *</label>
+                            <select class="form-select" id="paymentMethod" required>
+                                <option value="নগদ">নগদ</option>
+                                <option value="বিকাশ">বিকাশ</option>
+                                <option value="ব্যাংক">ব্যাংক</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-primary" id="savePaymentBtn">সংরক্ষণ করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- লগইন ফর্ম (প্রথমে দেখাবে) -->
+    <div class="container" id="loginContainer">
+        <div class="login-container">
+            <h2 class="text-center mb-4">কর্জে হাসানা সিস্টেম</h2>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">ব্যবহারকারীর নাম</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">পাসওয়ার্ড</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">লগইন করুন</button>
+                </div>
+            </form>
+            <div class="mt-3 text-center">
+                <p class="text-muted">ডেমো অ্যাকাউন্ট: admin / password</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ডেটাবেজ সিমুলেশন (গুগল শীটের পরিবর্তে লোকালস্টোরেজ ব্যবহার করা হচ্ছে)
+        let donors = JSON.parse(localStorage.getItem('qardHasanaDonors')) || [];
+        let borrowers = JSON.parse(localStorage.getItem('qardHasanaBorrowers')) || [];
+        let loans = JSON.parse(localStorage.getItem('qardHasanaLoans')) || [];
+        let payments = JSON.parse(localStorage.getItem('qardHasanaPayments')) || [];
+
+        // DOM লোড হওয়ার পর
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginContainer = document.getElementById('loginContainer');
+            const dashboard = document.getElementById('dashboard');
+            const loginForm = document.getElementById('loginForm');
+            
+            // প্রথমে লগইন ফর্ম দেখাবে
+            loginContainer.style.display = 'block';
+            dashboard.style.display = 'none';
+            
+            // লগইন ফর্ম সাবমিশন
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                // সহজ ভেরিফিকেশন (প্রোডাকশনে সঠিক অথেন্টিকেশন ব্যবহার করুন)
+                if (username === 'admin' && password === 'password') {
+                    loginContainer.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    loadDashboardData();
+                } else {
+                    alert('ভুল ব্যবহারকারীর নাম বা পাসওয়ার্ড!');
+                }
+            });
+            
+            // লগআউট বাটন
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                loginContainer.style.display = 'block';
+                dashboard.style.display = 'none';
+                loginForm.reset();
+            });
+            
+            // নতুন দাতা সংরক্ষণ
+            document.getElementById('saveDonorBtn').addEventListener('click', function() {
+                const donor = {
+                    id: Date.now(),
+                    name: document.getElementById('donorName').value,
+                    mobile: document.getElementById('donorMobile').value,
+                    address: document.getElementById('donorAddress').value,
+                    amount: parseInt(document.getElementById('donationAmount').value),
+                    method: document.getElementById('donationMethod').value,
+                    date: document.getElementById('donationDate').value,
+                    status: 'completed'
+                };
+                
+                donors.push(donor);
+                localStorage.setItem('qardHasanaDonors', JSON.stringify(donors));
+                
+                // মডাল বন্ধ করুন এবং ফর্ম রিসেট করুন
+                bootstrap.Modal.getInstance(document.getElementById('addDonorModal')).hide();
+                document.getElementById('addDonorForm').reset();
+                
+                // ড্যাশবোর্ড রিফ্রেশ করুন
+                loadDashboardData();
+                alert('দাতার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে!');
+            });
+            
+            // নতুন ঋণগ্রহীতা সংরক্ষণ
+            document.getElementById('saveBorrowerBtn').addEventListener('click', function() {
+                const borrower = {
+                    id: Date.now(),
+                    name: document.getElementById('borrowerName').value,
+                    mobile: document.getElementById('borrowerMobile').value,
+                    address: document.getElementById('borrowerAddress').value,
+                    profession: document.getElementById('borrowerProfession').value,
+                    income: document.getElementById('borrowerIncome').value ? parseInt(document.getElementById('borrowerIncome').value) : 0,
+                    nid: document.getElementById('borrowerNID').value,
+                    status: 'active'
+                };
+                
+                borrowers.push(borrower);
+                localStorage.setItem('qardHasanaBorrowers', JSON.stringify(borrowers));
+                
+                // মডাল বন্ধ করুন এবং ফর্ম রিসেট করুন
+                bootstrap.Modal.getInstance(document.getElementById('addBorrowerModal')).hide();
+                document.getElementById('addBorrowerForm').reset();
+                
+                // ড্যাশবোর্ড রিফ্রেশ করুন
+                loadDashboardData();
+                alert('ঋণগ্রহীতার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে!');
+            });
+            
+            // নতুন ঋণ সংরক্ষণ
+            document.getElementById('saveLoanBtn').addEventListener('click', function() {
+                const borrowerId = parseInt(document.getElementById('loanBorrower').value);
+                const borrower = borrowers.find(b => b.id === borrowerId);
+                
+                const loan = {
+                    id: Date.now(),
+                    borrowerId: borrowerId,
+                    borrowerName: borrower.name,
+                    amount: parseInt(document.getElementById('loanAmount').value),
+                    date: document.getElementById('loanDate').value,
+                    installmentAmount: parseInt(document.getElementById('installmentAmount').value),
+                    purpose: document.getElementById('loanPurpose').value,
+                    remainingAmount: parseInt(document.getElementById('loanAmount').value),
+                    status: 'active'
+                };
+                
+                loans.push(loan);
+                localStorage.setItem('qardHasanaLoans', JSON.stringify(loans));
+                
+                // মডাল বন্ধ করুন এবং ফর্ম রিসেট করুন
+                bootstrap.Modal.getInstance(document.getElementById('addLoanModal')).hide();
+                document.getElementById('addLoanForm').reset();
+                
+                // ড্যাশবোর্ড রিফ্রেশ করুন
+                loadDashboardData();
+                alert('ঋণের তথ্য সফলভাবে সংরক্ষণ করা হয়েছে!');
+            });
+            
+            // পেমেন্ট রেকর্ড সংরক্ষণ
+            document.getElementById('savePaymentBtn').addEventListener('click', function() {
+                const loanId = parseInt(document.getElementById('paymentLoan').value);
+                const loan = loans.find(l => l.id === loanId);
+                
+                const payment = {
+                    id: Date.now(),
+                    loanId: loanId,
+                    amount: parseInt(document.getElementById('paymentAmount').value),
+                    date: document.getElementById('paymentDate').value,
+                    method: document.getElementById('paymentMethod').value
+                };
+                
+                // ঋণের অবশিষ্ট পরিমাণ আপডেট করুন
+                loan.remainingAmount -= payment.amount;
+                if (loan.remainingAmount <= 0) {
+                    loan.status = 'completed';
+                }
+                
+                payments.push(payment);
+                localStorage.setItem('qardHasanaPayments', JSON.stringify(payments));
+                localStorage.setItem('qardHasanaLoans', JSON.stringify(loans));
+                
+                // মডাল বন্ধ করুন এবং ফর্ম রিসেট করুন
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                document.getElementById('paymentForm').reset();
+                
+                // ড্যাশবোর্ড রিফ্রেশ করুন
+                loadDashboardData();
+                alert('পেমেন্ট সফলভাবে রেকর্ড করা হয়েছে!');
+            });
+        });
+
+        // ড্যাশবোর্ড ডেটা লোড করা
+        function loadDashboardData() {
+            // পরিসংখ্যান আপডেট করুন
+            const totalDonations = donors.reduce((sum, donor) => sum + donor.amount, 0);
+            const totalLoans = loans.reduce((sum, loan) => sum + loan.amount, 0);
+            const activeBorrowers = loans.filter(loan => loan.status === 'active').length;
+            const repaidAmount = loans.reduce((sum, loan) => sum + (loan.amount - loan.remainingAmount), 0);
+            
+            document.getElementById('totalDonations').textContent = '৳ ' + totalDonations;
+            document.getElementById('totalLoans').textContent = '৳ ' + totalLoans;
+            document.getElementById('activeBorrowers').textContent = activeBorrowers;
+            document.getElementById('repaidAmount').textContent = '৳ ' + repaidAmount;
+            
+            // দাতাদের টেবিল পপুলেট করুন
+            const donorsTable = document.getElementById('donorsTable');
+            donorsTable.innerHTML = '';
+            
+            donors.forEach(donor => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${donor.name}</td>
+                    <td>${donor.mobile}</td>
+                    <td>৳ ${donor.amount}</td>
+                    <td>${donor.date}</td>
+                    <td>${donor.method}</td>
+                    <td><span class="badge status-completed">সম্পন্ন</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editDonor(${donor.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                donorsTable.appendChild(row);
+            });
+            
+            // ঋণগ্রহীতাদের টেবিল পপুলেট করুন
+            const borrowersTable = document.getElementById('borrowersTable');
+            borrowersTable.innerHTML = '';
+            
+            borrowers.forEach(borrower => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${borrower.name}</td>
+                    <td>${borrower.mobile}</td>
+                    <td>${borrower.address}</td>
+                    <td>${borrower.profession}</td>
+                    <td>৳ ${getBorrowerLoanAmount(borrower.id)}</td>
+                    <td><span class="badge status-active">সক্রিয়</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editBorrower(${borrower.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                borrowersTable.appendChild(row);
+            });
+            
+// ঋণ টেবিল পপুলেট করুন
+            const loansTable = document.getElementById('loansTable');
+            loansTable.innerHTML = '';
+            
+            loans.forEach(loan => {
+                const statusClass = loan.status === 'active' ? 'status-approved' : 
+                                  loan.status === 'completed' ? 'status-completed' : 'status-pending';
+                const statusText = loan.status === 'active' ? 'সক্রিয়' : 
+                                 loan.status === 'completed' ? 'সম্পন্ন' : 'মুলতুবি';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${loan.borrowerName}</td>
+                    <td>৳ ${loan.amount}</td>
+                    <td>${loan.date}</td>
+                    <td>${calculateDueDate(loan.date)}</td>
+                    <td>৳ ${loan.installmentAmount}</td>
+                    <td>৳ ${loan.remainingAmount}</td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success" onclick="recordPayment(${loan.id})">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editLoan(${loan.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                loansTable.appendChild(row);
+            });
+            
+            // ঋণগ্রহীতা ড্রপডাউন পপুলেট করুন
+            const loanBorrowerSelect = document.getElementById('loanBorrower');
+            loanBorrowerSelect.innerHTML = '<option value="" selected disabled>নির্বাচন করুন</option>';
+            
+            borrowers.forEach(borrower => {
+                const option = document.createElement('option');
+                option.value = borrower.id;
+                option.textContent = borrower.name;
+                loanBorrowerSelect.appendChild(option);
+            });
+            
+            // পেমেন্ট ঋণ ড্রপডাউন পপুলেট করুন
+            const paymentLoanSelect = document.getElementById('paymentLoan');
+            paymentLoanSelect.innerHTML = '<option value="" selected disabled>নির্বাচন করুন</option>';
+            
+            loans.filter(loan => loan.status === 'active').forEach(loan => {
+                const option = document.createElement('option');
+                option.value = loan.id;
+                option.textContent = `${loan.borrowerName} - ৳${loan.remainingAmount} অবশিষ্ট`;
+                paymentLoanSelect.appendChild(option);
+            });
+            
+            // ক্যালেন্ডার সেটআপ করুন
+            setupCalendar();
+        }
+        
+        // সহায়ক ফাংশন
+        function getBorrowerLoanAmount(borrowerId) {
+            const borrowerLoans = loans.filter(loan => loan.borrowerId === borrowerId);
+            return borrowerLoans.reduce((sum, loan) => sum + loan.amount, 0);
+        }
+        
+        function calculateDueDate(loanDate) {
+            const date = new Date(loanDate);
+            date.setMonth(date.getMonth() + 10); // 10 মাস পর
+            return date.toISOString().split('T')[0];
+        }
+        
+        function setupCalendar() {
+            // আজকের তারিখ
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            // মাস এবং বছর সেট করুন
+            document.getElementById('currentMonth').textContent = 
+                `${getMonthName(currentMonth)} ${currentYear}`;
+            
+            // ক্যালেন্ডার দিনগুলি তৈরি করুন
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+            
+            // প্রথম দিনের আগের খালি সেল
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'col calendar-day';
+                calendarDays.appendChild(emptyCell);
+            }
+            
+            // মাসের দিনগুলি
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'col calendar-day';
+                dayCell.textContent = day;
+                
+                // 5 তারিখ হলে পেমেন্ট ডিউ হাইলাইট করুন
+                if (day === 5) {
+                    dayCell.classList.add('payment-due');
+                }
+                
+                // আজকের তারিখ চিহ্নিত করুন
+                if (day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                    dayCell.style.backgroundColor = '#D4EDDA';
+                    dayCell.style.fontWeight = 'bold';
+                }
+                
+                calendarDays.appendChild(dayCell);
+            }
+            
+            // আজকের পেমেন্ট দেখান
+            const todayPayments = document.getElementById('todayPayments');
+            const todayLoans = loans.filter(loan => {
+                const loanDate = new Date(loan.date);
+                return loanDate.getDate() === today.getDate() && 
+                       loanDate.getMonth() === today.getMonth() && 
+                       loanDate.getFullYear() === today.getFullYear();
+            });
+            
+            if (todayLoans.length > 0) {
+                todayPayments.innerHTML = '<ul class="list-group">';
+                todayLoans.forEach(loan => {
+                    todayPayments.innerHTML += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${loan.borrowerName}
+                            <span class="badge bg-primary rounded-pill">৳ ${loan.installmentAmount}</span>
+                        </li>
+                    `;
+                });
+                todayPayments.innerHTML += '</ul>';
+            } else {
+                todayPayments.innerHTML = '<p class="text-muted">আজকে কোন পেমেন্ট নির্ধারিত নেই।</p>';
+            }
+            
+            // পূর্ববর্তী এবং পরবর্তী মাস বাটন
+            document.getElementById('prevMonth').addEventListener('click', function() {
+                // পূর্ববর্তী মাসের জন্য ক্যালেন্ডার আপডেট করুন
+                // (এই ডেমোতে বাস্তবায়ন করা হয়নি)
+                alert('পূর্ববর্তী মাস দেখানো হচ্ছে...');
+            });
+            
+            document.getElementById('nextMonth').addEventListener('click', function() {
+                // পরবর্তী মাসের জন্য ক্যালেন্ডার আপডেট করুন
+                // (এই ডেমোতে বাস্তবায়ন করা হয়নি)
+                alert('পরবর্তী মাস দেখানো হচ্ছে...');
+            });
+        }
+        
+        function getMonthName(monthIndex) {
+            const months = [
+                'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+                'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+            ];
+            return months[monthIndex];
+        }
+        
+        // সম্পাদনা এবং পেমেন্ট ফাংশন
+        function editDonor(id) {
+            alert(`দাতা ID ${id} সম্পাদনা করা হবে।`);
+            // বাস্তব অ্যাপ্লিকেশনে, একটি সম্পাদনা মডাল খুলবে
+        }
+        
+        function editBorrower(id) {
+            alert(`ঋণগ্রহীতা ID ${id} সম্পাদনা করা হবে।`);
+            // বাস্তব অ্যাপ্লিকেশনে, একটি সম্পাদনা মডাল খুলবে
+        }
+        
+        function editLoan(id) {
+            alert(`ঋণ ID ${id} সম্পাদনা করা হবে।`);
+            // বাস্তব অ্যাপ্লিকেশনে, একটি সম্পাদনা মডাল খুলবে
+        }
+        
+        function recordPayment(loanId) {
+            // পেমেন্ট মডাল খুলুন এবং নির্বাচিত ঋণ সেট করুন
+            document.getElementById('paymentLoan').value = loanId;
+            
+            const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            paymentModal.show();
+        }
+        // গুগল শীটে ডেটা সংরক্ষণ
+async function saveToGoogleSheet(endpoint, data) {
+  const webAppUrl = 'https://script.google.com/macros/s/AKfycby-C_YOfOKAACjEb0K7tblklruy6yt6ipS6bOdhSxpf7JJWHdLp41RZNEazSb_XApxAWA/exec';
+  const response = await fetch(webAppUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({action: endpoint, data: data})
+  });
+  return await response.json();
+}
+    </script>
+</body>
+</html>
